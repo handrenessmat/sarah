@@ -1,0 +1,45 @@
+name: SonarQube Scan
+
+on:
+  push:
+    branches:
+      - main # Change this to the appropriate branch name, e.g., master
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Automatically provided by GitHub, don't need to add as a secret
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          # Modify the following command based on your build system (e.g., Gradle, Maven, etc.)
+          # For Maven:
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+
+          # For Gradle:
+          # ./gradlew build sonarqube -Dsonar.login=$SONAR_TOKEN
